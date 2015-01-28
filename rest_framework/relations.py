@@ -222,7 +222,9 @@ class HyperlinkedRelatedField(RelatedField):
         except Resolver404:
             self.fail('no_match')
 
-        if match.view_name != self.view_name:
+        # Super hacky fix to mismatch between match view_name and the
+        # HyperlinkedRelatedField view_name when using namespaced versioning.
+        if match.view_name.split(':')[1] != self.view_name:
             self.fail('incorrect_match')
 
         try:

@@ -2,9 +2,6 @@ from .utils import mock_reverse, fail_reverse, BadType, MockObject, MockQueryset
 from django.conf.urls import patterns, url, include
 from django.core.exceptions import ImproperlyConfigured, ObjectDoesNotExist
 from rest_framework import serializers
-from rest_framework import versioning
-from rest_framework.views import APIView
-from rest_framework.response import Response
 from rest_framework.test import APISimpleTestCase, APIRequestFactory
 import pytest
 
@@ -22,6 +19,7 @@ urlpatterns = patterns(
     url(r'^v1/', include(included_patterns, namespace='v1')),
     url(r'^example/(?P<pk>\d+)/$', dummy_view, name='example-detail')
 )
+
 
 class TestStringRelatedField(APISimpleTestCase):
     def setUp(self):
@@ -84,13 +82,12 @@ class TestHyperlinkedRelatedField(APISimpleTestCase):
             view_name='example-detail',
             queryset=self.queryset
         )
-        self.field.reverse = mock_reverse
         self.field._context = {'request': request}
 
     def test_matching_url(self):
-        print self.field.to_internal_value('/example/3/')
-        print self.field.to_internal_value('/v1/example/3/')
-        assert False
+        self.field.to_internal_value('/example/3/')
+        self.field.to_internal_value('/v1/example/3/')
+
 
 class TestHyperlinkedIdentityField(APISimpleTestCase):
     def setUp(self):

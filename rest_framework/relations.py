@@ -1,7 +1,7 @@
 # coding: utf-8
 from __future__ import unicode_literals
 from django.core.exceptions import ObjectDoesNotExist, ImproperlyConfigured
-from django.core.urlresolvers import resolve, get_script_prefix, NoReverseMatch, Resolver404
+from django.core.urlresolvers import get_script_prefix, NoReverseMatch, Resolver404
 from django.db.models.query import QuerySet
 from django.utils import six
 from django.utils.encoding import smart_text
@@ -10,6 +10,7 @@ from django.utils.translation import ugettext_lazy as _
 from rest_framework.compat import OrderedDict
 from rest_framework.fields import get_attribute, empty, Field
 from rest_framework.reverse import reverse
+from rest_framework.resolve import resolve
 from rest_framework.utils import html
 
 
@@ -205,6 +206,7 @@ class HyperlinkedRelatedField(RelatedField):
         return self.reverse(view_name, kwargs=kwargs, request=request, format=format)
 
     def to_internal_value(self, data):
+        request = self.context.get('request', None)
         try:
             http_prefix = data.startswith(('http:', 'https:'))
         except AttributeError:
@@ -218,7 +220,7 @@ class HyperlinkedRelatedField(RelatedField):
                 data = '/' + data[len(prefix):]
 
         try:
-            match = self.resolve(data)
+            match = self.resolve(data, request=request)
         except Resolver404:
             self.fail('no_match')
 

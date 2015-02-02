@@ -5,6 +5,7 @@ from django.utils.datastructures import MultiValueDict
 from rest_framework import serializers
 from rest_framework.fields import empty
 from rest_framework.test import APISimpleTestCase, APIRequestFactory
+from rest_framework.versioning import NamespaceVersioning
 import pytest
 
 factory = APIRequestFactory()
@@ -84,9 +85,11 @@ class TestHyperlinkedRelatedField(APISimpleTestCase):
             view_name='example-detail',
             queryset=self.queryset
         )
+        request = factory.post('/')
+        request.versioning_scheme = NamespaceVersioning()
         self.field._context = {'request': request}
 
-    def test_matching_url(self):
+    def test_bug_2489(self):
         self.field.to_internal_value('/example/3/')
         self.field.to_internal_value('/v1/example/3/')
 

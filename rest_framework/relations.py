@@ -9,8 +9,7 @@ from django.utils.six.moves.urllib import parse as urlparse
 from django.utils.translation import ugettext_lazy as _
 from rest_framework.compat import OrderedDict
 from rest_framework.fields import get_attribute, empty, Field
-from rest_framework.reverse import reverse
-from rest_framework.resolve import resolve
+from rest_framework.reverse import reverse, resolve
 from rest_framework.utils import html
 
 

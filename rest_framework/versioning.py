@@ -135,7 +135,6 @@ class NamespaceVersioning(BaseVersioning):
     def resolve(self, path, urlconf=None, request=None):
         match = django_resolve(path, urlconf)
         if match.namespace:
-            # Return a ResolverMatch with a non-namespaced view_name
             _, view_name = match.view_name.split(':')
             return ResolverMatch(func=match.func,
                                  args=match.args,

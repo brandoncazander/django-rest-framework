@@ -11,7 +11,9 @@ import uuid
 from django.conf import settings
 from django.core.exceptions import ValidationError as DjangoValidationError
 from django.core.exceptions import ObjectDoesNotExist
-from django.core.validators import RegexValidator, ip_address_validators
+from django.core.validators import (
+    RegexValidator, ip_address_validators, validate_ipv4_address
+)
 from django.forms import ImageField as DjangoImageField
 from django.utils import six, timezone
 from django.utils.dateparse import parse_date, parse_datetime, parse_time
@@ -681,24 +683,29 @@ class IPAddressField(CharField):
     """Support both IPAddressField and GenericIPAddressField"""
 
     default_error_messages = {
-        'invalid': _('Enter a valid IPv4 or IPv6 address.'),
+        'invalid_both': _('Enter a valid IPv4 or IPv6 address.'),
+        'invalid_ipv4': _('Enter a valid IPv4 address.'),
+        'invalid_ipv6': _('Enter a valid IPv6 address.'),
     }
 
-    def __init__(self, protocol='both', **kwargs):
+    def __init__(self, protocol='both', unpack_ipv4=False, **kwargs):
         self.protocol = protocol.lower()
-        self.unpack_ipv4 = (self.protocol == 'both')
+        self.unpack_ipv4 = (self.protocol == 'both') and unpack_ipv4
         super(IPAddressField, self).__init__(**kwargs)
         validators, error_message = ip_address_validators(protocol, self.unpack_ipv4)
         self.validators.extend(validators)
 
     def to_internal_value(self, data):
-        if data and ':' in data:
+        if data:
             try:
-                if self.protocol in ('both', 'ipv6'):
+                if self.protocol in ('ipv4'):
+                    validate_ipv4_address(data)
+                    return data
+                if self.protocol in ('both', 'ipv6') and ':' in data:
                     return clean_ipv6_address(data, self.unpack_ipv4)
             except DjangoValidationError:
-                self.fail('invalid', value=data)
-
+                error_message = 'invalid_{protocol}'.format(protocol=self.protocol)
+                self.fail(error_message, value=data)
         return super(IPAddressField, self).to_internal_value(data)
 
 
